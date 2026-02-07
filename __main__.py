@@ -1,66 +1,51 @@
 import discord
-from discord import app_commands
 import os
 import asyncio
 from flask import Flask
 from threading import Thread
-from bot import *
-from config import config as config, check_config_values
+from bot import Bot # تأكد أن الكلاس مكتوب بـ Bot كبير
 
-# --- 1. سيرفر الويب المصغر لإبقاء البوت حياً في رندر ---
+# --- 1. سيرفر الويب (شغال تمام عندك) ---
 app = Flask('')
-
 @app.route('/')
-def home():
-    return "✅ Bot is Online and Port is Active!"
+def home(): return "✅ Bot is Online"
 
-def run_web():
-    # رندر يبحث عن المنفذ 8080 تلقائياً
-    app.run(host='0.0.0.0', port=8080)
+def run_web(): app.run(host='0.0.0.0', port=8080)
 
 def keep_alive():
     t = Thread(target=run_web)
     t.daemon = True
     t.start()
 
-# --- 2. الدالة الأساسية لتشغيل البوت ---
+# --- 2. تشغيل البوت ---
 def main():
-    # إعداد الصلاحيات (Intents)
     intents = discord.Intents.default()
     intents.message_content = True
     intents.voice_states = True
     intents.members = True 
 
-    # التحقق من الإعدادات (اختياري)
-    check_config_values()
-
-    # --- جلب التوكن مع تنظيف المسافات ---
-    # السطر التالي يسحب التوكن من Render ويحذف أي مسافات مخفية قد تسبب خطأ 401
-    env_token = os.environ.get('DISCORD_TOKEN')
-    config_token = config['DISCORD'].get('TOKEN')
+    # --- إجبار البوت على قراءة التوكن من رندر فقط وتجاهل أي ملفات أخرى ---
+    TOKEN = os.environ.get('DISCORD_TOKEN', '').strip()
     
-    TOKEN = (env_token or config_token or "").strip()
-    
-    # ⚠️ خطة الطوارئ: إذا فشل Render في قراءة المتغير، يمكنك وضع التوكن هنا مباشرة بين علامتي التنصيص
-    # TOKEN = "ضع_التوكن_هنا_في_حال_استمرار_المشكلة"
+    # تحذير بسيط في السجلات لو التوكن طار
+    if not TOKEN:
+        print("❌ CRITICAL ERROR: DISCORD_TOKEN variable is EMPTY in Render settings!")
+        return
 
-    if TOKEN and len(TOKEN) > 10:
-        # أ. تشغيل سيرفر الويب أولاً لفتح المنفذ
-        print("🌐 Starting web server on port 8080...")
-        keep_alive()
-        
-        # ب. إنشاء نسخة البوت وتشغيله
-        print("🤖 Attempting to login to Discord...")
-        try:
-            my_bot = Bot(TOKEN, intents)
-            my_bot.run(TOKEN)
-        except discord.errors.LoginFailure:
-            print("❌ ERROR: Login failed! The token provided is INVALID.")
-            print("💡 Action: Go to Discord Developer Portal, RESET your token, and update it in Render.")
-        except Exception as e:
-            print(f"❌ An unexpected error occurred: {e}")
-    else:
-        print("❌ ERROR: No valid Token found! Check DISCORD_TOKEN in Render Environment Variables.")
+    print(f"🌐 Web server starting...")
+    keep_alive()
+    
+    print(f"🤖 Attempting login with token length: {len(TOKEN)}") # سطر للتأكد من وجود التوكن
+    
+    try:
+        # ملاحظة: استبدلنا my_bot = Bot(TOKEN, intents) بـ النسخة المباشرة
+        client = Bot(TOKEN, intents)
+        client.run(TOKEN)
+    except discord.errors.LoginFailure:
+        print("❌ ERROR: Discord rejected the token! (401 Unauthorized)")
+        print("💡 QUICK FIX: Go to Discord Developers -> Bot -> Reset Token. Copy the NEW one to Render.")
+    except Exception as e:
+        print(f"❌ Unexpected Error: {e}")
 
 if(__name__ == '__main__'):
     main()
