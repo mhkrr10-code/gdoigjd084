@@ -3,4 +3,5 @@ yt-dlp
 PyNaCl
 static-ffmpeg
 configparser
+flask
 asyncio
