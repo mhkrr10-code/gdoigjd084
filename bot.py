@@ -5,6 +5,8 @@ from song import Song as Song
 import asyncio
 from voice import Voice as Voice
 import os # أضفنا هذا السطر فقط لاستخدام مكتبة النظام
+import static_ffmpeg
+static_ffmpeg.add_paths()
 
 class Bot(discord.Client):
     def __init__(self, TOKEN, INTENTS):

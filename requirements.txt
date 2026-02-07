@@ -1,0 +1,6 @@
+discord.py
+yt-dlp
+PyNaCl
+static-ffmpeg
+configparser
+asyncio
