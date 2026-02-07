@@ -1,0 +1,25 @@
+{
+  "servers": [
+    {
+      "id": "",
+      "users": []
+    },
+    {
+      "id": 1413982304241713278,
+      "users": [
+        {
+          "id": 1389628859225473277,
+          "banned": false,
+          "songs_played": 199,
+          "admin": false
+        },
+        {
+          "id": 1377021860650291261,
+          "banned": false,
+          "songs_played": 1,
+          "admin": false
+        }
+      ]
+    }
+  ]
+}
